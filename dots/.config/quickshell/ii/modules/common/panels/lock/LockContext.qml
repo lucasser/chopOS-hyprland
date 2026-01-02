@@ -39,7 +39,7 @@ Scope {
         root.resetTargetAction();
         root.clearText();
         root.unlockInProgress = false;
-        stopFingerPam();
+        //stopFingerPam();
     }
 
     Timer {
@@ -66,7 +66,7 @@ Scope {
     }
 
     function tryFingerUnlock() {
-        if (root.fingerprintsConfigured) {
+        if (root.fingerprintsConfigured && !fingerPam.active) {
             fingerPam.start();
         }
     }
