@@ -8,7 +8,7 @@ import QtQuick.Layouts
 DialogListItem {
     id: root
     required property string name
-    active: Wireguard.wgActive.includes(name)
+    //active: Wireguard.wgActive.includes(name)
     enabled: true
     onClicked: {
         Wireguard.toggleWgTunnel(name);
@@ -30,7 +30,8 @@ DialogListItem {
             spacing: 10
             MaterialSymbol {
                 iconSize: Appearance.font.pixelSize.larger
-                text: root.active ? "vpn_key" : "vpn_key_off"
+                property bool active: Wireguard.wgActive.includes(name)
+                text: active ? "vpn_key" : "vpn_key_off"
                 color: Appearance.colors.colOnSurfaceVariant
             }
             StyledText {
