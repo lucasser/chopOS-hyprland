@@ -101,4 +101,52 @@ Item {
             }
         }
     }
+
+
+    // //I love fingering
+    // function tryFingerUnlock() {
+    //     if (root.fingerprintsConfigured) {
+    //         fingerPam.start();
+    //     }
+    // }
+
+    // function stopFingerPam() {
+    //     if (fingerPam.active) {
+    //         fingerPam.abort();
+    //     }
+    // }
+
+    // Process {
+    //     id: fingerprintCheckProc
+    //     running: true
+    //     command: ["bash", "-c", "fprintd-list $(whoami)"]
+    //     stdout: StdioCollector {
+    //         id: fingerprintOutputCollector
+    //         onStreamFinished: {
+    //             root.fingerprintsConfigured = fingerprintOutputCollector.text.includes("Fingerprints for user");
+    //         }
+    //     }
+    //     onExited: (exitCode, exitStatus) => {
+    //         if (exitCode !== 0) {
+    //             // console.warn("[LockContext] fprintd-list command exited with error:", exitCode, exitStatus);
+    //             root.fingerprintsConfigured = false;
+    //         }
+    //     }
+    // }
+
+    // PamContext {
+    //     id: fingerPam
+
+    //     configDirectory: "pam"
+    //     config: "fprintd.conf"
+
+    //     onCompleted: result => {
+    //         if (result == PamResult.Success) {
+    //             root.unlocked(root.targetAction);
+    //             stopFingerPam();
+    //         } else if (result == PamResult.Error) { // if timeout or etc..
+    //             tryFingerUnlock()
+    //         }
+    //     }
+    // }
 }
