@@ -77,6 +77,7 @@ Scope {
 
             // Reset
             lockContext.reset();
+            lockContext.stopFingerPam();
 
             // Post-unlock actions
             if (lockContext.alsoInhibitIdle) {
