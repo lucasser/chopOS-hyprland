@@ -300,6 +300,7 @@ Item { // Bar content region
                             id: notificationUnreadCount
                         }
                     }
+                    //[TODO]: add vpn icon
                     MaterialSymbol {
                         text: Network.materialSymbol
                         iconSize: Appearance.font.pixelSize.larger
