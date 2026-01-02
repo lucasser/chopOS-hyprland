@@ -22,12 +22,15 @@ Singleton {
     
     property string toDisplay: ""
 
+    property int tunnelAmount: 0
+
     property string materialSymbol: wgenabled ? "vpn_key" : "vpn_key_off"
 
     // General control
     function toggleWg(): void {
         wgenabled ? disconnectAll() : connectAll();
         wgenabled = !wgenabled;
+        update()
     }
 
     function connectAll(): void {
@@ -48,15 +51,15 @@ Singleton {
     function addWgTunnel(wgname: string): void {
         if (!wgActive.includes(wgname)) {
             wgActive.push(wgname);
+            reloadWg();
         }
         console.log("added vpn tunnel", wgname);
-        reloadWg();
     }
 
     function removeWgTunnel(wgname: string): void {
         if (wgActive.includes(wgname)) {
             if (wgenabled) {
-                var tunnel = makeWireguardConfUrl(wgActive[i]) + ".conf"
+                var tunnel = makeWireguardConfUrl(wgname) + ".conf"
                 Quickshell.execDetached(["bash", Quickshell.shellPath("scripts/network/wg-utils.sh"), "down", tunnel]);
             }
             wgActive = wgActive.filter(t => t !== wgname)
@@ -77,10 +80,10 @@ Singleton {
     }
 
     function reloadWg(): void {
+        update();
         if (wgenabled) {
             connectAll();
         }
-        update();
     }
 
     Process {
@@ -111,6 +114,7 @@ Singleton {
 
     // Status update
     function update() {
-        toDisplay = wgActive.length === 0 ? wgActive[0] : ""
+        toDisplay = wgActive.length > 0 && wgenabled ? wgActive[0] : ""
+        tunnelAmount = wgActive.length
     }
 }
