@@ -14,11 +14,11 @@ import qs.modules.common
 Singleton {
     id: root
 
-    property bool wgenabled: false //if the connection is on
+    property bool wgenabled: Config.options.sidebar.vpn.enabled //if the connection is on
 
     property list<string> availableTunnels: [] //tunnel configs found in ~/.config/wireguard
 
-    property var wgActive: [] //tunnels we want to enable
+    property var wgActive: Config.options.sidebar.vpn.autostart //tunnels we want to enable
     
     property string toDisplay: ""
 
@@ -36,6 +36,7 @@ Singleton {
     function connectAll(): void {
         for (var i = 0; i < wgActive.length; i++) {
             var tunnel = makeWireguardConfUrl(wgActive[i]) + ".conf"
+            console.log("[WG] started", tunnel)
             Quickshell.execDetached(["bash", Quickshell.shellPath("scripts/network/wg-utils.sh"), "up", tunnel]);
         }
     }
@@ -117,4 +118,6 @@ Singleton {
         toDisplay = wgActive.length > 0 && wgenabled ? wgActive[0] : ""
         tunnelAmount = wgActive.length
     }
+
+    Component.onCompleted: reloadWg()
 }
