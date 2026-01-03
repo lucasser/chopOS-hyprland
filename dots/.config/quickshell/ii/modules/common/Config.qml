@@ -497,6 +497,10 @@ Singleton {
                     property bool enable: false
                     property int delay: 300 // Delay before sending request. Reduces (potential) rate limits and lag.
                 }
+                property JsonObject vpn: JsonObject {
+                    property bool enabled: false
+                    property list<string> autostart: []
+                }
                 property JsonObject ai: JsonObject {
                     property bool textFadeIn: false
                 }
