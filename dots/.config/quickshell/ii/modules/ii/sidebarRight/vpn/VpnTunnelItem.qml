@@ -9,9 +9,17 @@ DialogListItem {
     id: root
     required property string name
     //active: Wireguard.wgActive.includes(name)
+    property bool active: Wireguard.wgActive.includes(name)
     enabled: true
     onClicked: {
         Wireguard.toggleWgTunnel(name);
+    }
+
+    Connections {
+        target: Wireguard
+        function onWgActiveChanged() {
+            active = Wireguard.wgActive.includes(name)
+        }
     }
 
     contentItem: ColumnLayout {
@@ -30,7 +38,6 @@ DialogListItem {
             spacing: 10
             MaterialSymbol {
                 iconSize: Appearance.font.pixelSize.larger
-                property bool active: Wireguard.wgActive.includes(name)
                 text: active ? "vpn_key" : "vpn_key_off"
                 color: Appearance.colors.colOnSurfaceVariant
             }
@@ -48,5 +55,4 @@ DialogListItem {
             Layout.fillHeight: true
         }
     }
-    Component.onCompleted: console.log(name)
 }

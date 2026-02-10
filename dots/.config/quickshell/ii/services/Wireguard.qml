@@ -8,116 +8,110 @@ import Quickshell.Io
 import QtQuick
 import qs.modules.common
 
-/**
- * Assume all wireguard config files are in ~/.config/wireguard/ because im too lazy to do otherwise
- */
 Singleton {
     id: root
 
     property bool wgenabled: Config.options.sidebar.vpn.enabled //if the connection is on
 
-    property list<string> availableTunnels: [] //tunnel configs found in ~/.config/wireguard
+    property list<string> availableTunnels: [] //tunnels known by nmcli
 
-    property var wgActive: Config.options.sidebar.vpn.autostart //tunnels we want to enable
+    property list<string> wgActive: [] //active tunnels
     
     property string toDisplay: ""
 
-    property int tunnelAmount: 0
-
     property string materialSymbol: wgenabled ? "vpn_key" : "vpn_key_off"
+
+    onWgActiveChanged: {
+        toDisplay = (wgActive.length > 0 && wgenabled) ? wgActive[0] : ""
+    }
 
     // General control
     function toggleWg(): void {
-        wgenabled ? disconnectAll() : connectAll();
+        wgenabled && disconnectAll();
         wgenabled = !wgenabled;
         update()
     }
 
-    function connectAll(): void {
-        for (var i = 0; i < wgActive.length; i++) {
-            var tunnel = makeWireguardConfUrl(wgActive[i]) + ".conf"
-            console.log("[WG] started", tunnel)
-            Quickshell.execDetached(["bash", Quickshell.shellPath("scripts/network/wg-utils.sh"), "up", tunnel]);
-        }
-    }
-
     function disconnectAll(): void {
         for (var i = 0; i < wgActive.length; i++) {
-            var tunnel = makeWireguardConfUrl(wgActive[i]) + ".conf"
-            Quickshell.execDetached(["bash", Quickshell.shellPath("scripts/network/wg-utils.sh"), "down", tunnel]);
+            wgTunnelDown(wgActive[i]);
         }
     }
 
     // Tunnel specific control
-    function addWgTunnel(wgname: string): void {
-        if (!wgActive.includes(wgname)) {
-            wgActive.push(wgname);
-            reloadWg();
+    function wgTunnelUp(wgname: string): void {
+        if (availableTunnels.includes(wgname) && wgenabled) {
+            Quickshell.execDetached(["nmcli", "connection", "up", wgname]);
+            console.log("enabled vpn tunnel", wgname);
         }
-        console.log("added vpn tunnel", wgname);
+        updateTimer.start();
     }
 
-    function removeWgTunnel(wgname: string): void {
+    function wgTunnelDown(wgname: string): void {
         if (wgActive.includes(wgname)) {
-            if (wgenabled) {
-                var tunnel = makeWireguardConfUrl(wgname) + ".conf"
-                Quickshell.execDetached(["bash", Quickshell.shellPath("scripts/network/wg-utils.sh"), "down", tunnel]);
-            }
-            wgActive = wgActive.filter(t => t !== wgname)
-            reloadWg()
+            Quickshell.execDetached(["nmcli", "connection", "down", wgname]);
+            console.log("disabled vpn tunnel", wgname);
         }
+        updateTimer.start();
     }
 
     function toggleWgTunnel(wgname: string): void {
-        wgActive.includes(wgname) ? removeWgTunnel(wgname) : addWgTunnel(wgname);
-    }
-
-    function makeWireguardConfUrl(name: string): string {
-        return `${Directories.config.slice(7)}/wireguard/${name}`;
-    }
-
-    function reCacheWg() {
-        reCache.exec(["sh", "-c", "ls " + makeWireguardConfUrl("") + "*.conf"])
-    }
-
-    function reloadWg(): void {
-        update();
-        if (wgenabled) {
-            connectAll();
-        }
+        wgActive.includes(wgname) ? wgTunnelDown(wgname) : wgTunnelUp(wgname);
     }
 
     Process {
-        id: reCache
+        id: getWGtunnels
         environment: ({
             LANG: "C",
             LC_ALL: "C"
         })
         stdout: SplitParser {
             onRead: line => {
-                if (line.trim() !== "") {
-                    console.log(line)
-                    var name = line.split("/").pop().replace(/\.conf$/, "");
-                    if (!root.availableTunnels.includes(name)) {
-                        root.availableTunnels.push(name)
+                var info = line.split(":");
+                if (info[2] != "wireguard") {
+                    return;
+                }
+                if (!root.availableTunnels.includes(info[0])) {
+                    root.availableTunnels.push(info[0])
+                }
+                if (info[1] === "yes") {
+                    if (!root.wgActive.includes(info[0])) {
+                        root.wgActive.push(info[0]);
                     }
                 }
             }
         }
         stderr: SplitParser {
-            onRead: line => console.log("wg recache error:", line)
+            onRead: line => console.log("wg list error:", line)
         }
         onExited: (exitCode, exitStatus) => {
-            if (exitCode === 0) console.log("WireGuard recache finished:", root.availableTunnels)
+            if (exitCode === 0) console.log("Wireguard encountered no issues");
             else root.availableTunnels = []
+        }
+    }
+
+    Timer {
+        id: updateTimer
+        interval: 200
+        repeat: false
+        running: false
+        onTriggered: {
+            root.update();
         }
     }
 
     // Status update
     function update() {
-        toDisplay = wgActive.length > 0 && wgenabled ? wgActive[0] : ""
-        tunnelAmount = wgActive.length
+        wgActive = [];
+        getWGtunnels.exec(["nmcli", "-t", "-f", "NAME,ACTIVE,TYPE", "connection", "show"])
     }
 
-    Component.onCompleted: reloadWg()
+    Component.onCompleted: {
+        update();
+        var toStart = Config.options.sidebar.vpn.autostart
+        toStart.forEach(name => {
+            wgTunnelUp(name)
+            console.log(name)
+        })
+    }
 }
