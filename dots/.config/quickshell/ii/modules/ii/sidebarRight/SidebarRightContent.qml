@@ -161,7 +161,7 @@ Item {
         dialog: VpnDialog {}
         onShownChanged: {
             if (!shown) return;
-            Wireguard.reCacheWg();
+            Wireguard.update();
         }
     }
 
