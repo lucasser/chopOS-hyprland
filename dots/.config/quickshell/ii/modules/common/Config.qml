@@ -48,6 +48,7 @@ Singleton {
         interval: root.readWriteDelay
         repeat: false
         onTriggered: {
+            root.ready = false
             configFileView.reload()
         }
     }
