@@ -305,18 +305,16 @@ Singleton {
     }
     property ApiStrategy currentApiStrategy: apiStrategies[models[currentModelId]?.api_format || "openai"]
 
-    function addUserModels() {
-        (Config?.options.ai?.extraModels ?? []).forEach(model => {
-            const safeModelName = root.safeModelName(model["model"]);
-            root.addModel(safeModelName, model)
-        });
-    }
-
     Connections {
         target: Config
         function onReadyChanged() {
+            console.log("config changed")
             if (!Config.ready) return;
-            root.addUserModels()
+            (Config?.options.ai?.extraModels ?? []).forEach(model => {
+                console.log("new model found:" + model["model"].toString())
+                const safeModelName = root.safeModelName(model["model"].toString());
+                root.addModel(safeModelName, model)
+            });
         }
     }
 
@@ -350,13 +348,45 @@ Singleton {
     }
 
     function addModel(modelName, data) {
-        root.models = Object.assign({}, root.models, {
-            [modelName]: aiModelComponent.createObject(this, data)
-        });
+        root.models[modelName] = aiModelComponent.createObject(this, data);
+        root.modelList = Object.keys(root.models)
+
     }
 
     Process {
         id: getOllamaModels
+        running: true
+        command: ["bash", "-c", `${Directories.scriptPath}/ai/show-installed-ollama-models.sh`.replace(/file:\/\//, "")]
+        stdout: SplitParser {
+            onRead: data => {
+                try {
+                    if (data.length === 0) return;
+                    const dataJson = JSON.parse(data);
+                    root.modelList = [...root.modelList, ...dataJson];
+                    dataJson.forEach(model => {
+                        const safeModelName = root.safeModelName(model);
+                        root.addModel(safeModelName, {
+                            "name": guessModelName(model),
+                            "icon": guessModelLogo(model),
+                            "description": Translation.tr("Local Ollama model | %1").arg(model),
+                            "homepage": `https://ollama.com/library/${model}`,
+                            "endpoint": "http://localhost:11434/v1/chat/completions",
+                            "model": model,
+                            "requires_key": false,
+                        })
+                    });
+
+                    root.modelList = Object.keys(root.models);
+
+                } catch (e) {
+                    console.log("Could not fetch Ollama models:", e);
+                }
+            }
+        }
+    }
+
+    Process {
+        id: getLMStudioModels
         running: true
         command: ["bash", "-c", `${Directories.scriptPath}/ai/show-installed-ollama-models.sh`.replace(/file:\/\//, "")]
         stdout: SplitParser {
@@ -505,7 +535,10 @@ Singleton {
                 }
             }
         } else {
-            if (feedback) root.addMessage(Translation.tr("Invalid model. Supported: \n```\n") + modelList.join("\n```\n```\n"), Ai.interfaceRole) + "\n```"
+            if (feedback) {
+                root.addMessage(Translation.tr("Invalid model. Supported: \n```\n") + modelList.join("\n```\n```\n"), Ai.interfaceRole) + "\n```"
+                console.log(modelList)
+            }
         }
     }
 
