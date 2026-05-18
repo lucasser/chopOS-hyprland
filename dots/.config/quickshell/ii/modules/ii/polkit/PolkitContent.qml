@@ -69,12 +69,29 @@ Item {
             text: PolkitService.cleanMessage
         }
 
+        WindowDialogParagraph {
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignHCenter
+            text: PolkitService.flow.supplementaryMessage
+            color: Appearance.colors.colTertiary
+            visible: PolkitService.fingerprintAvailable
+        }
+        
+        MaterialSymbol {
+            Layout.alignment: Qt.AlignHCenter
+            iconSize: 54
+            text: "fingerprint"
+            color: Appearance.colors.colSecondary
+            visible: PolkitService.isFingerprintCurrentlyOffered
+        }
+
         MaterialTextField {
             id: inputField
             Layout.fillWidth: true
             focus: true
             enabled: PolkitService.interactionAvailable
             placeholderText: PolkitService.cleanPrompt
+            visible: !PolkitService.isFingerprintCurrentlyOffered
             echoMode: root.usePasswordChars ? TextInput.Password : TextInput.Normal
             onAccepted: root.submit();
 
@@ -101,52 +118,4 @@ Item {
             }
         }
     }
-
-
-    // //I love fingering
-    // function tryFingerUnlock() {
-    //     if (root.fingerprintsConfigured) {
-    //         fingerPam.start();
-    //     }
-    // }
-
-    // function stopFingerPam() {
-    //     if (fingerPam.active) {
-    //         fingerPam.abort();
-    //     }
-    // }
-
-    // Process {
-    //     id: fingerprintCheckProc
-    //     running: true
-    //     command: ["bash", "-c", "fprintd-list $(whoami)"]
-    //     stdout: StdioCollector {
-    //         id: fingerprintOutputCollector
-    //         onStreamFinished: {
-    //             root.fingerprintsConfigured = fingerprintOutputCollector.text.includes("Fingerprints for user");
-    //         }
-    //     }
-    //     onExited: (exitCode, exitStatus) => {
-    //         if (exitCode !== 0) {
-    //             // console.warn("[LockContext] fprintd-list command exited with error:", exitCode, exitStatus);
-    //             root.fingerprintsConfigured = false;
-    //         }
-    //     }
-    // }
-
-    // PamContext {
-    //     id: fingerPam
-
-    //     configDirectory: "pam"
-    //     config: "fprintd.conf"
-
-    //     onCompleted: result => {
-    //         if (result == PamResult.Success) {
-    //             root.unlocked(root.targetAction);
-    //             stopFingerPam();
-    //         } else if (result == PamResult.Error) { // if timeout or etc..
-    //             tryFingerUnlock()
-    //         }
-    //     }
-    // }
 }
