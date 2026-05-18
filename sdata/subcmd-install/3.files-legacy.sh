@@ -72,7 +72,7 @@ case "${SKIP_HYPRLAND}" in
       v bash -c "printf \"# For fedora to setup polkit\nexec-once = /usr/libexec/kf6/polkit-kde-authentication-agent-1\n\" >> ${XDG_CONFIG_HOME}/hypr/hyprland/execs.conf"
     fi
 
-    install_dir__sync dots/.config/hypr/chopOS-changes "$XDG_CONFIG_HOME"/hypr/chopOS-changes
+    #install_dir__sync dots/.config/hypr/chopOS-changes "$XDG_CONFIG_HOME"/hypr/chopOS-changes
     install_dir__ignore_existing "dots/.config/hypr/custom" "${XDG_CONFIG_HOME}/hypr/custom"
     ;;
 esac
