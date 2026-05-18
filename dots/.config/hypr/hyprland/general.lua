@@ -6,6 +6,13 @@ hl.monitor({
     scale = 1
 })
 
+hl.monitor({
+    output = "eDP-1",
+    mode = "preferred",
+    position = "auto",
+    scale = "1.33"
+})
+
 hl.gesture({
     fingers = 3,
     direction = "swipe",
@@ -47,11 +54,11 @@ hl.config({
     },
     general = {
         -- Gaps and border
-        gaps_in = 4,
+        gaps_in = 1,
         gaps_out = 5,
         gaps_workspaces = 50,
 
-        border_size = 1,
+        border_size = 3,
 
         col = {
             active_border = "rgba(0DB7D455)",
@@ -66,6 +73,13 @@ hl.config({
             window_gap = 4,
             monitor_gap = 5,
             respect_gaps = true
+        }
+    },
+    group = {
+        group_on_movetoworkspace = true,
+        groupbar = {
+            font_size = 12,
+            --gradients = true
         }
     },
     decoration = {
@@ -162,7 +176,7 @@ hl.animation({
 })
 hl.animation({
     leaf = "fadeIn",
-    enabled = true,
+    enabled = false,
     speed = 3,
     bezier = "emphasizedDecel"
 })
