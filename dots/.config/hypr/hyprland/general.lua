@@ -8,7 +8,7 @@ hl.monitor({
 
 hl.monitor({
     output = "eDP-1",
-    mode = "preferred",
+    mode = "highres",
     position = "auto",
     scale = "1.33"
 })
@@ -76,7 +76,6 @@ hl.config({
         }
     },
     group = {
-        group_on_movetoworkspace = true,
         groupbar = {
             font_size = 12,
             --gradients = true
