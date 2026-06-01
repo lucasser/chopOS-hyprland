@@ -267,7 +267,8 @@ hl.animation({
 
 hl.config({
     input = {
-        kb_layout = "us",
+        kb_layout = "us,ru",
+        kb_variant = ",phonetic_YAZHERTY",
         numlock_by_default = true,
         repeat_delay = 250,
         repeat_rate = 35,
@@ -277,7 +278,7 @@ hl.config({
 
         touchpad = {
             natural_scroll = true,
-            disable_while_typing = true,
+            disable_while_typing = false,
             clickfinger_behavior = true,
             scroll_factor = 0.7
         }
